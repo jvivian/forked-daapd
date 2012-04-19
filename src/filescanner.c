@@ -65,6 +65,7 @@ static dispatch_queue_t deferred_pl_sq;
 static int ino_fd;
 static dispatch_source_t ino_src;
 
+static char **ignored_exts;
 
 #if defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
 struct stacked_dir {
@@ -461,6 +462,8 @@ static void
 process_file(char *file, time_t mtime, off_t size, int compilation, int flags)
 {
   char *ext;
+  char *ignored_ext;
+  int i;
 
   ext = strrchr(file, '.');
   if (ext)
@@ -484,7 +487,20 @@ process_file(char *file, time_t mtime, off_t size, int compilation, int flags)
 
 	  return;
 	}
+    /* is this extension being ignored? */
+    else if (ignore_extensions)
+    {
+      i = 0;
+      while (ignored_ext = ignore_extensions[i++])
+      {
+        if (strcmp(ext, ignored_ext) == 0)
+        {
+          DPRINTF(E_DBG, L_SCAN, "Skipped %s due to ignored extension\n", file);
+          return;
+        }
+      }
     }
+  }
 
   /* Not any kind of special file, so let's see if it's a media file */
   process_media_file(file, mtime, size, compilation);
@@ -733,6 +749,7 @@ static void
 bulk_scan(void)
 {
   cfg_t *lib;
+  int nexts;
   int ndirs;
   char *path;
   char *deref;
@@ -742,6 +759,22 @@ bulk_scan(void)
   start = time(NULL);
 
   lib = cfg_getsec(cfg, "library");
+
+  /* populate list of ignored extensions */
+  nexts = cfg_size(lib, "ignore_extensions");
+  if (nexts > 0)
+  {
+    ignore_extensions = malloc(sizeof(char*) * (nexts + 1));
+    for (i = 0; i < nexts; i++)
+    {
+      ignore_extensions[i] = cfg_getnstr(lib, "ignore_extensions", i);
+    }
+    ignore_extensions[nexts] = 0;
+  }
+  else
+  {
+    ignore_extensions = 0;
+  }
 
   ndirs = cfg_size(lib, "directories");
   for (i = 0; i < ndirs; i++)
