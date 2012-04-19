@@ -531,6 +531,14 @@ scan_metadata_ffmpeg(char *file, struct media_file_info *mfi)
 	mfi->description = strdup("WMA audio file");
 	break;
 
+      case CODEC_ID_WMAV1:
+      case CODEC_ID_WMAV2:
+	DPRINTF(E_DBG, L_SCAN, "WMA V1/V2\n");
+	mfi->type = strdup("wma");
+	mfi->codectype = strdup("wma");
+	mfi->description = strdup("WMA audio file");
+	break;
+
       case CODEC_ID_PCM_S16LE ... CODEC_ID_PCM_F64LE:
 	if (strcmp(ctx->iformat->name, "aiff") == 0)
 	  {
