@@ -488,10 +488,10 @@ process_file(char *file, time_t mtime, off_t size, int compilation, int flags)
 	  return;
 	}
     /* is this extension being ignored? */
-    else if (ignore_extensions)
+    else if (ignored_exts)
     {
       i = 0;
-      while (ignored_ext = ignore_extensions[i++])
+      while (ignored_ext = ignored_exts[i++])
       {
         if (strcmp(ext, ignored_ext) == 0)
         {
@@ -764,16 +764,16 @@ bulk_scan(void)
   nexts = cfg_size(lib, "ignore_extensions");
   if (nexts > 0)
   {
-    ignore_extensions = malloc(sizeof(char*) * (nexts + 1));
+    ignored_exts = malloc(sizeof(char*) * (nexts + 1));
     for (i = 0; i < nexts; i++)
     {
-      ignore_extensions[i] = cfg_getnstr(lib, "ignore_extensions", i);
+      ignored_exts[i] = cfg_getnstr(lib, "ignore_extensions", i);
     }
-    ignore_extensions[nexts] = 0;
+    ignored_exts[nexts] = 0;
   }
   else
   {
-    ignore_extensions = 0;
+    ignored_exts = 0;
   }
 
   ndirs = cfg_size(lib, "directories");
